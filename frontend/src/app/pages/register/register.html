@@ -1,0 +1,98 @@
+<h2 class="mb-4 text-center">Registrazione</h2>
+
+<form
+  class="mx-auto"
+  style="max-width: 500px"
+  (ngSubmit)="submit()"
+>
+
+  <!-- ERRORE -->
+  <div *ngIf="error" class="alert alert-danger">
+    Errore durante la registrazione.
+  </div>
+
+  <!-- SUCCESSO -->
+  <div *ngIf="success" class="alert alert-success">
+    Registrazione completata! Reindirizzamento al login…
+  </div>
+
+  <!-- NOME -->
+  <div class="mb-3">
+    <label class="form-label">Nome</label>
+    <input
+      type="text"
+      class="form-control"
+      [(ngModel)]="nome"
+      name="nome"
+      required
+    />
+  </div>
+
+  <!-- COGNOME -->
+  <div class="mb-3">
+    <label class="form-label">Cognome</label>
+    <input
+      type="text"
+      class="form-control"
+      [(ngModel)]="cognome"
+      name="cognome"
+      required
+    />
+  </div>
+
+  <!-- EMAIL -->
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input
+      type="email"
+      class="form-control"
+      [(ngModel)]="email"
+      name="email"
+      required
+    />
+  </div>
+
+  <!-- PASSWORD (UI ONLY) -->
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input
+      type="password"
+      class="form-control"
+      [(ngModel)]="password"
+      name="password"
+      disabled
+    />
+    <small class="text-muted">
+      La password verrà gestita in una fase successiva.
+    </small>
+  </div>
+
+  <!-- RUOLO -->
+  <div class="mb-4">
+    <label class="form-label">Registrati come</label>
+    <select
+      class="form-select"
+      [(ngModel)]="ruolo"
+      name="ruolo"
+    >
+      <option value="ACQUIRENTE">Acquirente</option>
+      <option value="VENDITORE">Venditore</option>
+    </select>
+  </div>
+
+  <!-- AZIONI -->
+  <div class="d-grid gap-2">
+    <button
+      class="btn btn-primary"
+      type="submit"
+      [disabled]="loading"
+    >
+      {{ loading ? 'Registrazione...' : 'Registrati' }}
+    </button>
+
+    <a routerLink="/login" class="btn btn-outline-secondary">
+      Hai già un account? Login
+    </a>
+  </div>
+
+</form>

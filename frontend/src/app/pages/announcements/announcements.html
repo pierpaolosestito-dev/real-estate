@@ -1,0 +1,136 @@
+<div class="container">
+  <h2 class="mb-4">Annunci immobiliari</h2>
+
+  <!-- FILTRI -->
+  <form class="row g-3 mb-4">
+
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="filterTipo" name="tipo">
+        <option value="">Tutti</option>
+        <option value="VENDITA">Vendita</option>
+        <option value="AFFITTO">Affitto</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <input
+        type="number"
+        class="form-control"
+        placeholder="Prezzo massimo"
+        [(ngModel)]="filterPrezzo"
+        name="prezzo"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <input
+        type="number"
+        class="form-control"
+        placeholder="Bagni"
+        [(ngModel)]="filterBagni"
+        name="bagni"
+        min="1"
+      />
+    </div>
+
+  </form>
+
+  <!-- LISTA -->
+  <ng-container
+    *ngIf="filteredAnnouncements$ | async as announcements; else loadingTpl"
+  >
+
+    <div *ngIf="announcements.length === 0" class="alert alert-info">
+      Nessun annuncio trovato con i filtri selezionati.
+    </div>
+
+    <div class="row">
+      <div
+        class="col-lg-4 col-md-6 mb-4"
+        *ngFor="let a of announcements; trackBy: trackById"
+      >
+        <div class="card announcement-card h-100 shadow-sm">
+
+          <!-- IMMAGINE -->
+          <div class="position-relative">
+  <img
+    [src]="a.imageUrl || 'https://placehold.co/600x400'"
+    class="card-img-top announcement-img"
+    alt="Immobile"
+  />
+
+  <span
+    class="badge position-absolute top-0 start-0 m-2"
+    [ngClass]="{
+      'bg-success': a.tipo === 'VENDITA',
+      'bg-warning text-dark': a.tipo === 'AFFITTO'
+    }"
+  >
+    {{ a.tipo }}
+  </span>
+
+  <!-- LIKE BUTTON -->
+<button
+  class="btn position-absolute top-0 end-0 m-2"
+  [class.btn-danger]="isLiked(a.id)"
+  [class.btn-outline-danger]="!isLiked(a.id)"
+  [disabled]="likeLoading[a.id]"
+  (click)="toggleLike(a)"
+  type="button"
+>
+  <span *ngIf="!likeLoading[a.id]">
+    ❤️ {{ getLikeCount(a.id) }}
+  </span>
+  <span *ngIf="likeLoading[a.id]">
+    ⏳
+  </span>
+</button>
+
+</div>
+
+          <!-- BODY -->
+          <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title mb-1">
+              {{ a.titolo }}
+            </h5>
+
+            <p class="text-muted mb-2">
+              📍 {{ a.immobile.location.city }} – {{ a.immobile.location.address }}
+            </p>
+
+            <div class="d-flex justify-content-between mb-3 small text-muted">
+              <span>🛁 {{ a.immobile.bagni }} bagni</span>
+              <span>🛏 {{ a.immobile.stanze }} stanze</span>
+              <span>📐 {{ a.immobile.superficieMq }} mq</span>
+            </div>
+
+            <div class="mt-auto">
+
+              <div class="fw-bold fs-5 mb-3">
+                € {{ a.prezzo | number:'1.0-0' }}
+              </div>
+
+              <a
+                class="btn btn-primary w-100"
+                [routerLink]="['/annunci', a.id]"
+              >
+                Vedi dettagli
+              </a>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- LOADING -->
+  <ng-template #loadingTpl>
+    <div class="text-center my-4">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,211 @@
+<h2 class="mb-4">Nuovo Annuncio</h2>
+
+<form (ngSubmit)="submit()">
+
+  <!-- ===================== -->
+  <!-- DATI ANNUNCIO -->
+  <!-- ===================== -->
+
+  <!-- TITOLO -->
+  <div class="mb-3">
+    <label class="form-label">Titolo</label>
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Es. Appartamento luminoso in centro"
+      required
+      [(ngModel)]="titolo"
+      name="titolo"
+    />
+  </div>
+
+  <!-- DESCRIZIONE -->
+  <div class="mb-3">
+    <label class="form-label">Descrizione</label>
+    <textarea
+      class="form-control"
+      rows="4"
+      placeholder="Descrizione dell'immobile"
+      required
+      [(ngModel)]="descrizione"
+      name="descrizione"
+    ></textarea>
+  </div>
+
+  <!-- IMMAGINE -->
+  <div class="mb-3">
+    <label class="form-label">Immagine (URL)</label>
+    <input
+      type="text"
+      class="form-control"
+      placeholder="https://..."
+      [(ngModel)]="imageUrl"
+      name="imageUrl"
+    />
+    <small class="text-muted">
+      Se vuoto verrà usata un’immagine di default.
+    </small>
+  </div>
+
+  <!-- PREZZO + TIPO -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label class="form-label">Prezzo (€)</label>
+      <input
+        type="number"
+        class="form-control"
+        required
+        min="1"
+        [(ngModel)]="prezzo"
+        name="prezzo"
+      />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Tipo annuncio</label>
+      <select
+        class="form-select"
+        [(ngModel)]="tipo"
+        name="tipo"
+      >
+        <option value="VENDITA">Vendita</option>
+        <option value="AFFITTO">Affitto</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- DATI IMMOBILE -->
+  <!-- ===================== -->
+
+  <h5 class="mt-4">Dettagli Immobile</h5>
+
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label class="form-label">Tipo immobile</label>
+      <select
+        class="form-select"
+        [(ngModel)]="immobileTipo"
+        name="immobileTipo"
+      >
+        <option value="APPARTAMENTO">Appartamento</option>
+        <option value="VILLA">Villa</option>
+        <option value="MONOLOCALE">Monolocale</option>
+        <option value="UFFICIO">Ufficio</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Superficie (mq)</label>
+      <input
+        type="number"
+        class="form-control"
+        min="1"
+        [(ngModel)]="superficieMq"
+        name="superficieMq"
+      />
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Stanze</label>
+      <input
+        type="number"
+        class="form-control"
+        min="1"
+        [(ngModel)]="stanze"
+        name="stanze"
+      />
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Bagni</label>
+      <input
+        type="number"
+        class="form-control"
+        min="1"
+        [(ngModel)]="bagni"
+        name="bagni"
+      />
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- LOCALIZZAZIONE -->
+  <!-- ===================== -->
+
+  <h5 class="mt-4">Localizzazione</h5>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label class="form-label">Indirizzo</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="indirizzo"
+        name="indirizzo"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Città</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="citta"
+        name="citta"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">CAP</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="cap"
+        name="cap"
+      />
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- AZIONI -->
+  <!-- ===================== -->
+
+  <div class="mt-4 d-flex align-items-center gap-2">
+
+    <!-- Geocoding -->
+    <button
+      type="button"
+      class="btn btn-outline-primary"
+      (click)="pubblicaAnnuncio()"
+      [disabled]="geocoding"
+    >
+      {{ geocoding ? 'Ricerca coordinate...' : 'Trova coordinate' }}
+    </button>
+
+    <!-- Submit -->
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="publishing"
+    >
+      {{ publishing ? 'Pubblicazione...' : 'Pubblica annuncio' }}
+    </button>
+
+    <a routerLink="/vendor" class="btn btn-secondary ms-2">
+      Annulla
+    </a>
+
+  </div>
+
+  <!-- ===================== -->
+  <!-- RISULTATO GEOCODING -->
+  <!-- ===================== -->
+
+  <div *ngIf="latitudine && longitudine" class="alert alert-info mt-4">
+    <strong>Coordinate trovate</strong><br />
+    Latitudine: {{ latitudine }}<br />
+    Longitudine: {{ longitudine }}
+  </div>
+
+</form>

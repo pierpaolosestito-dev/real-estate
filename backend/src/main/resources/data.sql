@@ -1,0 +1,140 @@
+-- =========================================================
+-- CLEAN (ordine corretto per i vincoli FK)
+-- =========================================================
+DELETE FROM announcement_reviews;
+DELETE FROM announcement_likes;
+DELETE FROM announcements;
+DELETE FROM properties;
+DELETE FROM users;
+
+-- =========================================================
+-- USERS
+-- =========================================================
+INSERT INTO users (nome, cognome, email, ruolo) VALUES
+('Admin', 'System', 'admin@realestate.it', 'ADMIN'),
+('Mario', 'Rossi', 'mario@realestate.it', 'VENDITORE'),
+('Anna', 'Bianchi', 'anna@realestate.it', 'ACQUIRENTE');
+
+-- =========================================================
+-- PROPERTIES
+-- =========================================================
+INSERT INTO properties (
+    tipo,
+    superficie_mq,
+    stanze,
+    bagni,
+    address,
+    city,
+    latitude,
+    longitude
+) VALUES
+(
+    'APPARTAMENTO',
+    90,
+    4,
+    1,
+    'Via Roma 10',
+    'Roma',
+    41.9028,
+    12.4964
+),
+(
+    'MONOLOCALE',
+    40,
+    1,
+    1,
+    'Via Milano 5',
+    'Milano',
+    45.4642,
+    9.1900
+);
+
+-- =========================================================
+-- ANNOUNCEMENTS
+-- =========================================================
+INSERT INTO announcements (
+    titolo,
+    descrizione,
+    prezzo,
+    tipo,
+    image_url,
+    property_id,
+    vendor_id,
+    data_pubblicazione
+)
+SELECT
+    'Appartamento centrale a Roma',
+    'Appartamento luminoso in zona centrale, vicino ai servizi.',
+    250000,
+    'VENDITA',
+    'https://images.unsplash.com/photo-1568605114967-8130f3a36994',
+    p.id,
+    u.id,
+    CURRENT_DATE
+FROM properties p, users u
+WHERE p.address = 'Via Roma 10'
+  AND u.email = 'mario@realestate.it';
+
+INSERT INTO announcements (
+    titolo,
+    descrizione,
+    prezzo,
+    tipo,
+    image_url,
+    property_id,
+    vendor_id,
+    data_pubblicazione
+)
+SELECT
+    'Monolocale in affitto a Milano',
+    'Ideale per studenti o giovani lavoratori.',
+    700,
+    'AFFITTO',
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267',
+    p.id,
+    u.id,
+    CURRENT_DATE
+FROM properties p, users u
+WHERE p.address = 'Via Milano 5'
+  AND u.email = 'mario@realestate.it';
+
+-- =========================================================
+-- ANNOUNCEMENT LIKES
+-- (created_at valorizzato esplicitamente)
+-- =========================================================
+INSERT INTO announcement_likes (
+    announcement_id,
+    user_id,
+    created_at
+)
+SELECT
+    a.id,
+    u.id,
+    NOW()
+FROM announcements a, users u
+WHERE u.email = 'anna@realestate.it'
+  AND a.titolo IN (
+    'Appartamento centrale a Roma',
+    'Monolocale in affitto a Milano'
+  );
+
+-- =========================================================
+-- ANNOUNCEMENT REVIEWS
+-- (created_at valorizzato esplicitamente)
+-- =========================================================
+INSERT INTO announcement_reviews (
+    announcement_id,
+    user_id,
+    rating,
+    commento,
+    created_at
+)
+SELECT
+    a.id,
+    u.id,
+    5,
+    'Annuncio molto chiaro e immobile interessante!',
+    NOW()
+FROM announcements a, users u
+WHERE u.email = 'anna@realestate.it'
+  AND a.titolo = 'Monolocale in affitto a Milano';

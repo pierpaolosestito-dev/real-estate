@@ -1,0 +1,191 @@
+<div class="container mt-5">
+
+  <!-- ================= PROFILO ================= -->
+  <h2 class="mb-4">👤 Il mio profilo</h2>
+
+  <div class="card shadow-sm mb-5">
+    <div class="card-body">
+
+      <form (ngSubmit)="save()">
+
+        <div class="row mb-3">
+          <div class="col">
+            <label class="form-label">Nome</label>
+            <input
+              class="form-control"
+              [(ngModel)]="user.nome"
+              name="nome"
+              required>
+          </div>
+
+          <div class="col">
+            <label class="form-label">Cognome</label>
+            <input
+              class="form-control"
+              [(ngModel)]="user.cognome"
+              name="cognome"
+              required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input
+            class="form-control"
+            [(ngModel)]="user.email"
+            name="email"
+            required>
+        </div>
+
+        <div class="mb-3">
+          <span class="badge bg-secondary">
+            Ruolo: {{ user.ruolo }}
+          </span>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          [disabled]="saving">
+          💾 Salva modifiche
+        </button>
+
+      </form>
+
+      <div *ngIf="success" class="alert alert-success mt-3">
+        Profilo aggiornato correttamente
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        Errore durante il salvataggio
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= ANNUNCI LIKED ================= -->
+  <h3 class="mb-3">❤️ Annunci che ti piacciono</h3>
+
+  <ng-container
+    *ngIf="likedAnnouncements$ | async as announcements; else loadingTpl"
+  >
+
+    <div *ngIf="announcements.length === 0"
+         class="alert alert-info">
+      Non hai ancora messo like a nessun annuncio.
+    </div>
+
+    <div class="row">
+      <div
+        class="col-md-4 mb-4"
+        *ngFor="let a of announcements">
+
+        <div class="card h-100 shadow-sm">
+
+          <img
+            [src]="a.imageUrl || 'https://placehold.co/600x400'"
+            class="card-img-top"
+            alt="Immobile">
+
+          <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title">
+              {{ a.titolo }}
+            </h5>
+
+            <p class="text-muted mb-2">
+              📍 {{ a.immobile.location.city }}
+            </p>
+
+            <p class="fw-bold mb-3">
+              € {{ a.prezzo | number:'1.0-0' }}
+              <span class="badge bg-secondary ms-2">
+                {{ a.tipo }}
+              </span>
+            </p>
+
+            <div class="mt-auto d-grid gap-2">
+
+              <a
+                class="btn btn-outline-primary"
+                [routerLink]="['/annunci', a.id]">
+                Vedi annuncio
+              </a>
+
+              <button
+                class="btn btn-outline-success"
+                (click)="compare(a, announcements)">
+                📊 Compara prezzi
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= COMPARAZIONE ================= -->
+    <div
+      *ngIf="stats && selectedAnnouncement"
+      class="card mt-5 shadow-sm"
+    >
+
+      <div class="card-body">
+
+        <h4 class="mb-3">
+          📈 Confronto prezzi
+          <span
+            class="badge ms-2"
+            [ngClass]="{
+              'bg-success': position === 'LOW',
+              'bg-warning text-dark': position === 'MID',
+              'bg-danger': position === 'HIGH'
+            }"
+          >
+            {{ position }}
+          </span>
+        </h4>
+
+        <p class="text-muted">
+          Annuncio selezionato:
+          <strong>{{ selectedAnnouncement.titolo }}</strong>
+          ({{ selectedAnnouncement.immobile.location.city }},
+          {{ selectedAnnouncement.immobile.superficieMq }} mq)
+        </p>
+
+        <ul class="list-group mb-4">
+          <li class="list-group-item">
+            💰 Prezzo medio annunci simili:
+            <strong>€ {{ stats.avg }}</strong>
+          </li>
+          <li class="list-group-item">
+            📉 Prezzo minimo:
+            <strong>€ {{ stats.min }}</strong>
+          </li>
+          <li class="list-group-item">
+            📈 Prezzo massimo:
+            <strong>€ {{ stats.max }}</strong>
+          </li>
+          <li class="list-group-item">
+            📐 Prezzo medio / mq:
+            <strong>€ {{ stats.avgPerMq }}</strong>
+          </li>
+        </ul>
+
+        <!-- GRAFICO -->
+        <canvas id="priceChart"></canvas>
+
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ================= LOADING ================= -->
+  <ng-template #loadingTpl>
+    <div class="text-center my-4">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  </ng-template>
+
+</div>

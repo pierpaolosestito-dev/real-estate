@@ -1,0 +1,155 @@
+<h2 class="mb-4">Dashboard Admin</h2>
+
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <button
+      class="nav-link"
+      [class.active]="activeTab === 'users'"
+      (click)="activeTab = 'users'"
+    >
+      Utenti
+    </button>
+  </li>
+  <li class="nav-item">
+    <button
+      class="nav-link"
+      [class.active]="activeTab === 'announcements'"
+      (click)="activeTab = 'announcements'"
+    >
+      Annunci
+    </button>
+  </li>
+</ul>
+
+<!-- ================= UTENTI ================= -->
+<div *ngIf="activeTab === 'users'">
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input
+        class="form-control"
+        placeholder="Filtra per email"
+        [(ngModel)]="userEmailFilter"
+        (ngModelChange)="onUserFilterChange()"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <select
+        class="form-select"
+        [(ngModel)]="userRoleFilter"
+        (ngModelChange)="onUserFilterChange()"
+      >
+        <option value="">Tutti i ruoli</option>
+        <option value="ADMIN">Admin</option>
+        <option value="VENDITORE">Venditore</option>
+        <option value="ACQUIRENTE">Acquirente</option>
+      </select>
+    </div>
+  </div>
+
+  <ng-container *ngIf="users$ | async as users">
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td>{{ u.id }}</td>
+          <td>{{ u.nome }} {{ u.cognome }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.ruolo }}</td>
+          <td class="d-flex gap-2">
+
+            <!-- DISABILITA -->
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="disableUser(u)"
+            >
+              Disabilita
+            </button>
+
+            <!-- PROMUOVI A ADMIN -->
+            <button
+              *ngIf="u.ruolo === 'ACQUIRENTE'"
+              class="btn btn-sm btn-outline-primary"
+              (click)="promoteToAdmin(u)"
+            >
+              Rendi amministratore
+            </button>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </ng-container>
+</div>
+
+<!-- ================= ANNUNCI ================= -->
+<div *ngIf="activeTab === 'announcements'">
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input
+        class="form-control"
+        placeholder="Email venditore"
+        [(ngModel)]="vendorEmailFilter"
+        (ngModelChange)="onAnnouncementFilterChange()"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <select
+        class="form-select"
+        [(ngModel)]="announcementTypeFilter"
+        (ngModelChange)="onAnnouncementFilterChange()"
+      >
+        <option value="">Tutti</option>
+        <option value="VENDITA">Vendita</option>
+        <option value="AFFITTO">Affitto</option>
+      </select>
+    </div>
+  </div>
+
+  <ng-container *ngIf="announcements$ | async as announcements">
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Titolo</th>
+          <th>Venditore</th>
+          <th>Prezzo</th>
+          <th>Tipo</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of announcements">
+          <td>{{ a.id }}</td>
+          <td>{{ a.titolo }}</td>
+          <td>{{ a.venditore.email }}</td>
+          <td>€ {{ a.prezzo }}</td>
+          <td>{{ a.tipo }}</td>
+          <td>
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="removeAnnouncement(a)"
+            >
+              Rimuovi
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </ng-container>
+</div>

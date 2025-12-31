@@ -1,0 +1,63 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+
+    <a class="navbar-brand" routerLink="/">RealEstate</a>
+
+    <ul class="navbar-nav ms-auto align-items-center">
+
+      <!-- NON LOGGATO -->
+      <li class="nav-item" *ngIf="!auth.isLogged()">
+        <a class="nav-link" routerLink="/login">Login</a>
+      </li>
+
+      <li class="nav-item" *ngIf="!auth.isLogged()">
+        <a class="nav-link" routerLink="/register">Registrati</a>
+      </li>
+
+      <!-- ACQUIRENTE -->
+      <li class="nav-item" *ngIf="role === 'ACQUIRENTE'">
+        <a class="nav-link" routerLink="/annunci">Annunci</a>
+      </li>
+
+      <!-- VENDITORE -->
+      <li class="nav-item" *ngIf="role === 'VENDITORE'">
+        <a class="nav-link" routerLink="/vendor">Area Venditore</a>
+      </li>
+
+      <!-- ADMIN -->
+      <li class="nav-item" *ngIf="role === 'ADMIN'">
+        <a class="nav-link" routerLink="/admin">Admin</a>
+      </li>
+
+      <li class="nav-item text-white ms-3" *ngIf="auth.isLogged()">
+  <small>
+
+    <a
+      routerLink="/me"
+      class="text-white text-decoration-none fw-semibold"
+      style="cursor: pointer"
+    >
+      {{ user?.nome }} {{ user?.cognome }}
+    </a>
+
+    <span class="badge bg-light text-dark ms-1">
+      {{ role }}
+    </span>
+
+  </small>
+</li>
+
+
+      
+
+
+      <!-- LOGOUT -->
+      <li class="nav-item ms-2" *ngIf="auth.isLogged()">
+        <button class="btn btn-sm btn-light" (click)="logout()">
+          Logout
+        </button>
+      </li>
+
+    </ul>
+  </div>
+</nav>

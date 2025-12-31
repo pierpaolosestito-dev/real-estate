@@ -1,0 +1,128 @@
+<div class="container py-4">
+
+  <div *ngIf="error" class="alert alert-danger">
+    Errore nel caricamento dell’annuncio.
+  </div>
+
+  <ng-container *ngIf="announcement$ | async as a; else loadingTpl">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between mb-3">
+      <div>
+        <h2>{{ a.titolo }}</h2>
+        <div class="text-muted">
+          📍 {{ a.immobile.location.city }} · {{ a.immobile.location.address }}
+        </div>
+      </div>
+      <div class="text-end">
+        <div class="fs-3 fw-bold">€ {{ a.prezzo | number:'1.0-0' }}</div>
+        <span class="badge"
+          [ngClass]="{
+            'bg-success': a.tipo === 'VENDITA',
+            'bg-warning text-dark': a.tipo === 'AFFITTO'
+          }">
+          {{ a.tipo }}
+        </span>
+      </div>
+    </div>
+
+    <!-- IMAGE -->
+    <img
+      [src]="a.imageUrl || 'https://placehold.co/1200x600'"
+      class="img-fluid mb-4"
+    />
+
+    <!-- LIKE -->
+    <button
+      class="btn mb-4"
+      [class.btn-danger]="likedByMe"
+      [class.btn-outline-danger]="!likedByMe"
+      (click)="toggleLike()">
+      ❤️ {{ likeCount }}
+    </button>
+
+    <!-- RECENSIONI -->
+    <div class="card mb-4">
+      <div class="card-body">
+
+        <h5>
+          Recensioni
+          <span class="text-muted">
+            ({{ reviewStats.count }} · ⭐ {{ reviewStats.average }})
+          </span>
+        </h5>
+
+        <div *ngIf="reviews.length; else noReviews">
+          <div *ngFor="let r of reviews" class="border-bottom py-3">
+
+            <div class="fw-semibold">
+              {{ r.user?.nome }} {{ r.user?.cognome }}
+              <span class="text-warning">⭐ {{ r.rating }}</span>
+            </div>
+
+            <div class="text-muted small">
+              {{ r.createdAt | date:'short' }}
+            </div>
+
+            <div *ngIf="r.commento">{{ r.commento }}</div>
+
+            <button
+              *ngIf="userId && r.user?.id === userId"
+              class="btn btn-sm btn-outline-danger mt-2"
+              (click)="deleteReview()">
+              Elimina recensione
+            </button>
+
+          </div>
+        </div>
+
+        <ng-template #noReviews>
+          <div class="text-muted">Nessuna recensione presente.</div>
+        </ng-template>
+
+        <!-- FORM -->
+        <div *ngIf="userId" class="mt-4">
+          <h6>{{ hasReviewed ? 'Aggiorna la tua recensione' : 'Scrivi una recensione' }}</h6>
+
+          <select class="form-select mb-2" [(ngModel)]="myRating">
+            <option *ngFor="let v of [5,4,3,2,1]" [value]="v">
+              {{ v }} ⭐
+            </option>
+          </select>
+
+          <textarea
+            class="form-control mb-2"
+            rows="3"
+            [(ngModel)]="myComment"
+            placeholder="Commento (opzionale)">
+          </textarea>
+
+          <button class="btn btn-primary" (click)="submitReview()">
+            {{ hasReviewed ? 'Aggiorna' : 'Invia recensione' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VENDITORE -->
+    <div class="card">
+      <div class="card-body">
+        <h5>Venditore</h5>
+        <div>{{ a.venditore.nome }} {{ a.venditore.cognome }}</div>
+        <div class="text-muted">{{ a.venditore.email }}</div>
+        <a class="btn btn-primary mt-2" [href]="buildMailtoLink(a)">
+          Contatta il venditore
+        </a>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <ng-template #loadingTpl>
+    <div class="text-center my-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  </ng-template>
+
+</div>
