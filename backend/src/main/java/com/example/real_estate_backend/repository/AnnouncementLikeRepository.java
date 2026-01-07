@@ -26,4 +26,9 @@ public interface AnnouncementLikeRepository extends JpaRepository<AnnouncementLi
     where al.user.id = :userId
 """)
 List<Announcement> findLikedAnnouncementsByUserId(Long userId);
+
+@Modifying
+@Transactional
+void deleteByAnnouncementId(Long announcementId);
+
 }

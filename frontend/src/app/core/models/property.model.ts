@@ -14,3 +14,11 @@ export interface Property {
   bagni: number;
   location: Location;
 }
+
+export interface CreatePropertyPayload {
+  tipo: PropertyType;
+  superficieMq: number;
+  stanze: number;
+  bagni: number;
+  location: Location;
+}

@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Announcement } from '../models/announcement.model';
+
+import {
+  Announcement,
+  CreateAnnouncementPayload
+} from '../models/announcement.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +16,15 @@ export class AnnouncementService {
 
   constructor(private http: HttpClient) {}
 
-  /** CREA annuncio */
-  create(announcement: Announcement): Observable<Announcement> {
-    return this.http.post<Announcement>(this.API_URL, announcement);
-  }
-  
+  /**
+   * ✅ CREA annuncio
+   * Usa payload SENZA id, venditore, data
+   */
+create(payload: CreateAnnouncementPayload): Observable<Announcement> {
+  return this.http.post<Announcement>(this.API_URL, payload);
+}
+
+
   /** Tutti gli annunci */
   getAll(): Observable<Announcement[]> {
     return this.http.get<Announcement[]>(this.API_URL);
@@ -34,7 +42,10 @@ export class AnnouncementService {
     );
   }
 
-  /** MODIFICA annuncio */
+  /**
+   * ✏️ MODIFICA annuncio
+   * Qui l'id ESISTE ed è obbligatorio
+   */
   update(announcement: Announcement): Observable<Announcement> {
     return this.http.put<Announcement>(
       `${this.API_URL}/${announcement.id}`,
@@ -42,7 +53,7 @@ export class AnnouncementService {
     );
   }
 
-  /** ELIMINA annuncio */
+  /** 🗑️ ELIMINA annuncio */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
   }

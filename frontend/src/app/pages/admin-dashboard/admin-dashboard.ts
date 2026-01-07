@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import Swal from 'sweetalert2';
+
 import { UserService } from '../../core/services/user.service';
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { User } from '../../core/models/user.model';
 import { Announcement } from '../../core/models/announcement.model';
-import { Role } from '../../core/services/auth.service';
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -82,29 +84,98 @@ export class AdminDashboardComponent {
     this.announcementTypeFilter$.next(this.announcementTypeFilter);
   }
 
-  /** AZIONI */
+  /** ==================== AZIONI ==================== */
+
   disableUser(user: User): void {
-    if (confirm(`Disabilitare ${user.email}?`)) {
-      this.userService.delete(user.id).subscribe();
-    }
+    Swal.fire({
+      icon: 'warning',
+      title: 'Disabilitare utente',
+      text: `Vuoi davvero disabilitare ${user.email}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Sì, disabilita',
+      cancelButtonText: 'Annulla'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.userService.delete(user.id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Utente disabilitato'
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Errore',
+              text: 'Errore durante la disabilitazione'
+            });
+          }
+        });
+      }
+    });
   }
 
   promoteToAdmin(user: User): void {
-  if (confirm(`Rendere ${user.email} amministratore?`)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Promozione amministratore',
+      text: `Rendere ${user.email} amministratore?`,
+      showCancelButton: true,
+      confirmButtonText: 'Sì, promuovi',
+      cancelButtonText: 'Annulla'
+    }).then(result => {
+      if (result.isConfirmed) {
 
-    const updated: User = {
-      ...user,
-      ruolo: 'ADMIN'
-    };
+        const updated: User = {
+          ...user,
+          ruolo: 'ADMIN'
+        };
 
-    this.userService.update(updated).subscribe();
+        this.userService.update(updated).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Utente promosso'
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Errore',
+              text: 'Errore durante la promozione'
+            });
+          }
+        });
+      }
+    });
   }
-}
-
 
   removeAnnouncement(a: Announcement): void {
-    if (confirm(`Rimuovere annuncio "${a.titolo}"?`)) {
-      this.announcementService.delete(a.id).subscribe();
-    }
+    Swal.fire({
+      icon: 'warning',
+      title: 'Rimozione annuncio',
+      text: `Rimuovere l'annuncio "${a.titolo}"?`,
+      showCancelButton: true,
+      confirmButtonText: 'Sì, rimuovi',
+      cancelButtonText: 'Annulla'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.announcementService.delete(a.id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Annuncio rimosso'
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Errore',
+              text: 'Errore durante la rimozione dell’annuncio'
+            });
+          }
+        });
+      }
+    });
   }
 }

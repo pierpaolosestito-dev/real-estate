@@ -3,11 +3,16 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
+import Swal from 'sweetalert2';
+
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Announcement } from '../../core/models/announcement.model';
-import { AnnouncementType } from '../../core/models/announcement.model';
+import {
+  AnnouncementType,
+  CreateAnnouncementPayload
+} from '../../core/models/announcement.model';
 import { PropertyType } from '../../core/models/property.model';
+
 @Component({
   selector: 'app-new-announcement',
   standalone: true,
@@ -17,126 +22,139 @@ import { PropertyType } from '../../core/models/property.model';
 })
 export class NewAnnouncementComponent {
 
-  // --- Campi UI: ANNUNCIO ---
+  // =====================
+  // DATI ANNUNCIO
+  // =====================
   titolo = '';
   descrizione = '';
   prezzo: number | null = null;
   tipo: AnnouncementType = 'VENDITA';
   imageUrl = '';
 
-  // --- Campi UI: IMMOBILE ---
+  // =====================
+  // DATI IMMOBILE
+  // =====================
   immobileTipo: PropertyType = 'APPARTAMENTO';
   superficieMq: number | null = null;
   stanze: number | null = null;
   bagni: number | null = null;
 
-  // --- Campi UI: LOCATION ---
+  // =====================
+  // LOCALIZZAZIONE
+  // =====================
   indirizzo = '';
   citta = '';
   cap = '';
 
-  // Coordinate geocoding (string perché arrivano da Nominatim come stringhe)
   latitudine: string | null = null;
   longitudine: string | null = null;
 
-  // Stato UI
   geocoding = false;
   publishing = false;
 
   constructor(
     private announcements: AnnouncementService,
-    public auth: AuthService,
+    private auth: AuthService,
     private router: Router
   ) {}
 
-  // 1) Geocoding
-  pubblicaAnnuncio() {
+  // =====================
+  // GEOCODING
+  // =====================
+  pubblicaAnnuncio(): void {
     if (!this.indirizzo || !this.citta || !this.cap) {
-      alert('Inserisci indirizzo, città e CAP');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Dati mancanti',
+        text: 'Inserisci indirizzo, città e CAP'
+      });
       return;
     }
 
     const address = `${this.indirizzo}, ${this.cap}, ${this.citta}, Italia`;
-
     this.geocoding = true;
 
     fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`,
-      {
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
+      { headers: { Accept: 'application/json' } }
     )
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
           this.latitudine = data[0].lat;
           this.longitudine = data[0].lon;
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Coordinate trovate',
+            text: 'Localizzazione completata con successo'
+          });
         } else {
-          alert('Indirizzo non trovato');
+          Swal.fire({
+            icon: 'error',
+            title: 'Indirizzo non trovato',
+            text: 'Verifica i dati inseriti'
+          });
         }
       })
-      .catch(() => alert('Errore durante il geocoding'))
-      .finally(() => this.geocoding = false);
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Errore',
+          text: 'Errore durante il geocoding'
+        });
+      })
+      .finally(() => (this.geocoding = false));
   }
 
-  // 2) Submit reale: costruisce Announcement completo e fa POST
+  // =====================
+  // SUBMIT
+  // =====================
   submit(): void {
-    // Validazioni minime
-    if (!this.titolo || !this.descrizione) {
-      alert('Inserisci titolo e descrizione');
-      return;
-    }
-    if (this.prezzo === null || this.prezzo <= 0) {
-      alert('Inserisci un prezzo valido');
-      return;
-    }
-    if (!this.immobileTipo) {
-      alert('Seleziona il tipo immobile');
-      return;
-    }
-    if (this.superficieMq === null || this.superficieMq <= 0) {
-      alert('Inserisci una superficie valida');
-      return;
-    }
-    if (this.stanze === null || this.stanze <= 0) {
-      alert('Inserisci un numero stanze valido');
-      return;
-    }
-    if (this.bagni === null || this.bagni <= 0) {
-      alert('Inserisci un numero bagni valido');
+
+    const venditoreId = this.auth.getUserId();
+    if (!venditoreId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Accesso richiesto',
+        text: 'Utente non autenticato'
+      });
       return;
     }
 
-    if (!this.indirizzo || !this.citta || !this.cap) {
-      alert('Inserisci indirizzo, città e CAP');
+    // ---- Validazione completa ----
+    if (
+      !this.titolo ||
+      !this.descrizione ||
+      this.prezzo === null ||
+      this.superficieMq === null ||
+      this.stanze === null ||
+      this.bagni === null ||
+      !this.indirizzo ||
+      !this.citta ||
+      !this.cap ||
+      !this.latitudine ||
+      !this.longitudine
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campi incompleti',
+        text: 'Compila tutti i campi e trova le coordinate'
+      });
       return;
     }
 
-    if (!this.latitudine || !this.longitudine) {
-      alert('Prima trova le coordinate (clicca "Trova coordinate")');
-      return;
-    }
-
-    const venditore = this.auth.getUser();
-    if (!venditore) {
-      alert('Utente non autenticato');
-      return;
-    }
-
-    // Costruzione oggetto Announcement completo (rispetta il tuo model.ts)
-    const announcement: Announcement = {
-      id: 0, // il backend assegna l'id
+    // ---- Payload POST (type-safe) ----
+    const payload: CreateAnnouncementPayload = {
       titolo: this.titolo.trim(),
       descrizione: this.descrizione.trim(),
       prezzo: this.prezzo,
       tipo: this.tipo,
-      imageUrl: this.imageUrl?.trim() || 'https://placehold.co/1200x800?text=RealEstate',
-      venditore,
-      dataPubblicazione: new Date(), // hardcoded lato JS (come volevi)
+      imageUrl:
+        this.imageUrl.trim() ||
+        'https://placehold.co/1200x800?text=RealEstate',
+      venditoreId,
       immobile: {
-        id: 0,
         tipo: this.immobileTipo,
         superficieMq: this.superficieMq,
         stanze: this.stanze,
@@ -152,14 +170,23 @@ export class NewAnnouncementComponent {
 
     this.publishing = true;
 
-    this.announcements.create(announcement).subscribe({
+    this.announcements.create(payload).subscribe({
       next: () => {
-        alert('Annuncio pubblicato!');
-        this.router.navigate(['/vendor']);
+        Swal.fire({
+          icon: 'success',
+          title: 'Annuncio pubblicato',
+          text: 'Il tuo annuncio è stato pubblicato con successo'
+        }).then(() => {
+          this.router.navigate(['/vendor']);
+        });
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
-        alert('Errore durante la pubblicazione');
+        Swal.fire({
+          icon: 'error',
+          title: 'Errore',
+          text: 'Errore durante la pubblicazione'
+        });
         this.publishing = false;
       }
     });

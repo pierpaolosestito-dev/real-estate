@@ -2,11 +2,11 @@ package com.example.real_estate_backend.controller;
 
 import com.example.real_estate_backend.model.User;
 import com.example.real_estate_backend.model.Announcement;
-import com.example.real_estate_backend.repository.UserRepository;
-import com.example.real_estate_backend.repository.AnnouncementLikeRepository;
+import com.example.real_estate_backend.repository.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,14 +18,20 @@ import java.util.List;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final AnnouncementRepository announcementRepository;
     private final AnnouncementLikeRepository likeRepository;
+    private final AnnouncementReviewRepository reviewRepository;
 
     public UserController(
-            UserRepository userRepository,
-            AnnouncementLikeRepository likeRepository
+        UserRepository userRepository,
+        AnnouncementRepository announcementRepository,
+        AnnouncementLikeRepository likeRepository,
+        AnnouncementReviewRepository reviewRepository
     ) {
         this.userRepository = userRepository;
+        this.announcementRepository = announcementRepository;
         this.likeRepository = likeRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     /**
@@ -52,40 +58,55 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public User update(
-            @PathVariable Long id,
-            @RequestBody User updated
+        @PathVariable Long id,
+        @RequestBody User updated
     ) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "User not found"
-                ));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "User not found"
+            ));
 
         user.setNome(updated.getNome());
         user.setCognome(updated.getCognome());
         user.setEmail(updated.getEmail());
         user.setRuolo(updated.getRuolo());
-        // password ignorata per ora
+        // password ignorata (come deciso)
 
         return userRepository.save(user);
     }
 
     /**
      * DELETE /api/users/{id}
-     * Elimina un utente (delete fisico)
+     * Elimina un utente e TUTTI i dati collegati
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void delete(@PathVariable Long id) {
 
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "User not found"
+                HttpStatus.NOT_FOUND,
+                "User not found"
             );
         }
 
+        // 1️⃣ recupera tutti gli annunci del venditore
+        List<Announcement> announcements =
+            announcementRepository.findByVenditoreId(id);
+
+        // 2️⃣ elimina dipendenze di ogni annuncio
+        for (Announcement a : announcements) {
+            Long announcementId = a.getId();
+
+            likeRepository.deleteByAnnouncementId(announcementId);
+            reviewRepository.deleteByAnnouncementId(announcementId);
+            announcementRepository.deleteById(announcementId);
+        }
+
+        // 3️⃣ elimina l’utente
         userRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -97,8 +118,8 @@ public class UserController {
 
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "User not found"
+                HttpStatus.NOT_FOUND,
+                "User not found"
             );
         }
 

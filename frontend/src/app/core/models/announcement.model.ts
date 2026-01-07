@@ -1,4 +1,4 @@
-import { Property } from './property.model';
+import { Property, CreatePropertyPayload } from './property.model';
 import { User } from './user.model';
 
 export type AnnouncementType = 'VENDITA' | 'AFFITTO';
@@ -9,8 +9,18 @@ export interface Announcement {
   descrizione: string;
   prezzo: number;
   tipo: AnnouncementType;
-  imageUrl:string;
+  imageUrl: string;
   immobile: Property;
   venditore: User;
   dataPubblicazione: Date;
+}
+
+export interface CreateAnnouncementPayload {
+  titolo: string;
+  descrizione: string;
+  prezzo: number;
+  tipo: AnnouncementType;
+  imageUrl: string;
+  venditoreId: number;
+  immobile: CreatePropertyPayload;
 }

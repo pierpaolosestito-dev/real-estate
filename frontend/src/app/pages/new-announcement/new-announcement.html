@@ -6,7 +6,6 @@
   <!-- DATI ANNUNCIO -->
   <!-- ===================== -->
 
-  <!-- TITOLO -->
   <div class="mb-3">
     <label class="form-label">Titolo</label>
     <input
@@ -19,7 +18,6 @@
     />
   </div>
 
-  <!-- DESCRIZIONE -->
   <div class="mb-3">
     <label class="form-label">Descrizione</label>
     <textarea
@@ -32,7 +30,6 @@
     ></textarea>
   </div>
 
-  <!-- IMMAGINE -->
   <div class="mb-3">
     <label class="form-label">Immagine (URL)</label>
     <input
@@ -47,7 +44,6 @@
     </small>
   </div>
 
-  <!-- PREZZO + TIPO -->
   <div class="row mb-3">
     <div class="col-md-6">
       <label class="form-label">Prezzo (€)</label>
@@ -63,11 +59,7 @@
 
     <div class="col-md-6">
       <label class="form-label">Tipo annuncio</label>
-      <select
-        class="form-select"
-        [(ngModel)]="tipo"
-        name="tipo"
-      >
+      <select class="form-select" [(ngModel)]="tipo" name="tipo">
         <option value="VENDITA">Vendita</option>
         <option value="AFFITTO">Affitto</option>
       </select>
@@ -83,11 +75,7 @@
   <div class="row mb-3">
     <div class="col-md-4">
       <label class="form-label">Tipo immobile</label>
-      <select
-        class="form-select"
-        [(ngModel)]="immobileTipo"
-        name="immobileTipo"
-      >
+      <select class="form-select" [(ngModel)]="immobileTipo" name="immobileTipo">
         <option value="APPARTAMENTO">Appartamento</option>
         <option value="VILLA">Villa</option>
         <option value="MONOLOCALE">Monolocale</option>
@@ -172,8 +160,6 @@
   <!-- ===================== -->
 
   <div class="mt-4 d-flex align-items-center gap-2">
-
-    <!-- Geocoding -->
     <button
       type="button"
       class="btn btn-outline-primary"
@@ -183,7 +169,6 @@
       {{ geocoding ? 'Ricerca coordinate...' : 'Trova coordinate' }}
     </button>
 
-    <!-- Submit -->
     <button
       type="submit"
       class="btn btn-primary"
@@ -195,12 +180,7 @@
     <a routerLink="/vendor" class="btn btn-secondary ms-2">
       Annulla
     </a>
-
   </div>
-
-  <!-- ===================== -->
-  <!-- RISULTATO GEOCODING -->
-  <!-- ===================== -->
 
   <div *ngIf="latitudine && longitudine" class="alert alert-info mt-4">
     <strong>Coordinate trovate</strong><br />

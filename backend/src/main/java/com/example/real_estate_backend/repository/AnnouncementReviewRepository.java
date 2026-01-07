@@ -41,4 +41,8 @@ public interface AnnouncementReviewRepository
         where r.announcement.id = :announcementId
     """)
     Double averageRating(@Param("announcementId") Long announcementId);
+
+@Transactional
+void deleteByAnnouncementId(Long announcementId);
+
 }

@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 
+import Swal from 'sweetalert2';
+
 import { Announcement } from '../../core/models/announcement.model';
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -68,39 +70,62 @@ export class VendorDashboardComponent implements OnInit {
     if (!this.selectedAnnouncement) return;
 
     this.saving = true;
-
     const payload: Announcement = this.selectedAnnouncement;
 
-    // ✅ CHIAMA PUT/UPDATE (deve esistere nel service)
     this.announcementService.update(payload).subscribe({
       next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Annuncio aggiornato'
+        });
         this.closeModal();
         this.loadAnnouncements();
       },
       error: err => {
         console.error('Errore update annuncio', err);
         this.saving = false;
-        alert('Errore durante la modifica dell’annuncio');
+        Swal.fire({
+          icon: 'error',
+          title: 'Errore',
+          text: 'Errore durante la modifica dell’annuncio'
+        });
       }
     });
   }
 
   /** ELIMINA -> DELETE */
   deleteAnnouncement(id: number): void {
-    if (!confirm('Eliminare questo annuncio?')) return;
+    Swal.fire({
+      icon: 'warning',
+      title: 'Eliminare annuncio',
+      text: 'Sei sicuro di voler eliminare questo annuncio?',
+      showCancelButton: true,
+      confirmButtonText: 'Sì, elimina',
+      cancelButtonText: 'Annulla'
+    }).then(result => {
+      if (!result.isConfirmed) return;
 
-    this.deletingId = id;
+      this.deletingId = id;
 
-    this.announcementService.delete(id).subscribe({
-      next: () => {
-        this.deletingId = null;
-        this.loadAnnouncements();
-      },
-      error: err => {
-        console.error('Errore delete annuncio', err);
-        this.deletingId = null;
-        alert('Errore durante l’eliminazione dell’annuncio');
-      }
+      this.announcementService.delete(id).subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Annuncio eliminato'
+          });
+          this.deletingId = null;
+          this.loadAnnouncements();
+        },
+        error: err => {
+          console.error('Errore delete annuncio', err);
+          this.deletingId = null;
+          Swal.fire({
+            icon: 'error',
+            title: 'Errore',
+            text: 'Errore durante l’eliminazione dell’annuncio'
+          });
+        }
+      });
     });
   }
 }

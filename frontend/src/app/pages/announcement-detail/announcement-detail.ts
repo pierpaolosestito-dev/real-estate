@@ -1,9 +1,19 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, EMPTY, of, forkJoin } from 'rxjs';
 import { switchMap, catchError, tap, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import * as L from 'leaflet';
+
+import Swal from 'sweetalert2';
 
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { AnnouncementLikeService } from '../../core/services/announcement-like.service';
@@ -13,33 +23,52 @@ import { AuthService } from '../../core/services/auth.service';
 import { Announcement } from '../../core/models/announcement.model';
 import { Review, CreateReviewRequest } from '../../core/models/review.model';
 
+/* ==================== FIX LEAFLET MARKER ==================== */
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+/* ==================== METEO ==================== */
+
+interface WeatherData {
+  temperature: number;
+  windspeed: number;
+  weathercode: number;
+}
+
 @Component({
   selector: 'app-announcement-detail',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './announcement-detail.html',
 })
-export class AnnouncementDetailComponent {
-
-  /* ==================== ANNUNCIO ==================== */
+export class AnnouncementDetailComponent implements AfterViewChecked {
 
   announcement$!: Observable<Announcement>;
   error = false;
 
-  /* ==================== LIKE ==================== */
-
   likeCount = 0;
   likedByMe = false;
 
-  /* ==================== RECENSIONI ==================== */
-
   reviews: Review[] = [];
-
   myRating = 5;
   myComment = '';
   hasReviewed = false;
 
-  /* ==================== CONTESTO ==================== */
+  weather: WeatherData | null = null;
+  weatherLoading = false;
+  weatherError = false;
+
+  @ViewChild('mapAnnouncement')
+  mapElementRef!: ElementRef<HTMLDivElement>;
+
+  private mapInitialized = false;
+  private pendingMapCoords: { lat: number; lng: number } | null = null;
 
   userId: number | null = null;
   private announcementId!: number;
@@ -49,7 +78,9 @@ export class AnnouncementDetailComponent {
     private announcementService: AnnouncementService,
     private likeService: AnnouncementLikeService,
     private reviewService: AnnouncementReviewService,
-    private auth: AuthService
+    private auth: AuthService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {
     this.userId = this.auth.getUser()?.id ?? null;
 
@@ -64,8 +95,6 @@ export class AnnouncementDetailComponent {
 
         this.announcementId = id;
         this.error = false;
-
-        // carica recensioni
         this.loadReviews();
 
         return this.announcementService.getById(id).pipe(
@@ -85,6 +114,13 @@ export class AnnouncementDetailComponent {
             this.likeCount = count;
             this.likedByMe = liked;
           }),
+          tap(({ announcement }) => {
+            const loc = announcement.immobile?.location;
+            if (loc?.latitude && loc?.longitude) {
+              this.loadWeather(loc.latitude, loc.longitude);
+              this.pendingMapCoords = { lat: loc.latitude, lng: loc.longitude };
+            }
+          }),
           map(({ announcement }) => announcement),
           catchError(err => {
             console.error(err);
@@ -96,7 +132,13 @@ export class AnnouncementDetailComponent {
     );
   }
 
-  /* ==================== STATS DERIVATE ==================== */
+  ngAfterViewChecked(): void {
+    if (!this.mapInitialized && this.mapElementRef && this.pendingMapCoords) {
+      const { lat, lng } = this.pendingMapCoords;
+      this.initMap(lat, lng);
+      this.mapInitialized = true;
+    }
+  }
 
   get reviewStats() {
     const count = this.reviews.length;
@@ -114,7 +156,11 @@ export class AnnouncementDetailComponent {
 
   toggleLike(): void {
     if (!this.userId) {
-      alert('Devi essere loggato per mettere like');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Accesso richiesto',
+        text: 'Devi essere loggato per mettere like'
+      });
       return;
     }
 
@@ -124,10 +170,15 @@ export class AnnouncementDetailComponent {
 
     action$.subscribe({
       next: () => {
-        this.likedByMe = !this.likedByMe;
-        this.likeCount += this.likedByMe ? 1 : -1;
+        window.location.reload(); // progetto didattico
       },
-      error: () => alert('Errore durante il like')
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Errore',
+          text: 'Errore durante il like'
+        });
+      }
     });
   }
 
@@ -137,7 +188,6 @@ export class AnnouncementDetailComponent {
     this.reviewService.getReviews(this.announcementId).subscribe({
       next: r => {
         this.reviews = r ?? [];
-
         this.hasReviewed =
           !!this.userId &&
           this.reviews.some(rv => rv.user?.id === this.userId);
@@ -146,11 +196,13 @@ export class AnnouncementDetailComponent {
     });
   }
 
-  /* ===== INVIO / AGGIORNAMENTO RECENSIONE ===== */
-
   submitReview(): void {
     if (!this.userId) {
-      alert('Devi essere loggato per recensire');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Accesso richiesto',
+        text: 'Devi essere loggato per recensire'
+      });
       return;
     }
 
@@ -163,23 +215,14 @@ export class AnnouncementDetailComponent {
       .addOrUpdateReview(this.announcementId, this.userId, payload)
       .subscribe({
         next: () => {
-          // reset form
           this.myComment = '';
           this.myRating = 5;
-
-          // ricarica recensioni subito
           this.loadReviews();
-
-          // REFRESH HARD DOPO 2 SECONDI (PROGETTO DIDATTICO)
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
+          setTimeout(() => window.location.reload(), 2000);
         },
         error: err => console.error('Errore invio recensione', err)
       });
   }
-
-  /* ===== CANCELLAZIONE RECENSIONE ===== */
 
   deleteReview(): void {
     if (!this.userId) return;
@@ -188,16 +231,75 @@ export class AnnouncementDetailComponent {
       .deleteReview(this.announcementId, this.userId)
       .subscribe({
         next: () => {
-          // ricarica recensioni subito
           this.loadReviews();
-
-          // REFRESH HARD DOPO 2 SECONDI
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
+          setTimeout(() => window.location.reload(), 2000);
         },
         error: err => console.error('Errore cancellazione recensione', err)
       });
+  }
+
+  /* ==================== METEO ==================== */
+
+  loadWeather(lat: number, lon: number): void {
+    this.weatherLoading = true;
+    this.weatherError = false;
+
+    this.http
+      .get<any>(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+      )
+      .subscribe({
+        next: data => {
+          this.weather = data.current_weather ?? null;
+          this.weatherLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          console.error('Errore meteo', err);
+          this.weatherError = true;
+          this.weatherLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  getWeatherDescription(code: number): string {
+    const map: Record<number, string> = {
+      0: 'Sereno',
+      1: 'Prevalentemente sereno',
+      2: 'Parzialmente nuvoloso',
+      3: 'Nuvoloso',
+      45: 'Nebbia',
+      48: 'Nebbia',
+      51: 'Pioggerella',
+      61: 'Pioggia',
+      71: 'Neve',
+      80: 'Rovesci'
+    };
+
+    return map[code] ?? 'Condizioni variabili';
+  }
+
+  /* ==================== MAPPA ==================== */
+
+  private initMap(lat: number, lng: number): void {
+    const map = L.map(this.mapElementRef.nativeElement, {
+      center: [lat, lng],
+      zoom: 15,
+      scrollWheelZoom: false,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    L.marker([lat, lng])
+      .addTo(map)
+      .bindPopup('Posizione immobile');
+
+    setTimeout(() => map.invalidateSize(), 0);
   }
 
   /* ==================== MAIL ==================== */
@@ -216,4 +318,3 @@ export class AnnouncementDetailComponent {
     return `mailto:${a.venditore.email}?subject=${subject}&body=${body}`;
   }
 }
-

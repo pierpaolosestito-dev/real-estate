@@ -96,18 +96,38 @@ export class HomeComponent implements AfterViewInit {
   }
 
   private initMap(): void {
-    const map = L.map('map', {
-      center: [this.lat, this.lng],
-      zoom: 15,
-      scrollWheelZoom: false
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    L.marker([this.lat, this.lng])
-      .addTo(map)
-      .bindPopup(`<b>${this.agencyName}</b><br>Sede operativa`);
+  // sicurezza: evita doppia inizializzazione
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    console.error('Map container not found');
+    return;
   }
+
+  const map = L.map(mapElement, {
+    center: [this.lat, this.lng],
+    zoom: 15,
+    scrollWheelZoom: false,
+    zoomControl: true
+  });
+
+  // Tile layer OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Marker sede
+  const marker = L.marker([this.lat, this.lng]).addTo(map);
+
+  marker.bindPopup(`
+    <strong>${this.agencyName}</strong><br>
+    Sede operativa
+  `);
+
+  // Fix layout Bootstrap / Angular
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 0);
+}
+
 }

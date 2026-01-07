@@ -138,3 +138,88 @@ SELECT
 FROM announcements a, users u
 WHERE u.email = 'anna@realestate.it'
   AND a.titolo = 'Monolocale in affitto a Milano';
+
+
+-- =========================================================
+-- EXTRA PROPERTIES (per comparazione)
+-- =========================================================
+INSERT INTO properties (
+    tipo,
+    superficie_mq,
+    stanze,
+    bagni,
+    address,
+    city,
+    latitude,
+    longitude
+) VALUES
+(
+    'MONOLOCALE',
+    38,
+    1,
+    1,
+    'Via Torino 12',
+    'Milano',
+    45.4680,
+    9.1810
+),
+(
+    'MONOLOCALE',
+    45,
+    1,
+    1,
+    'Via Venezia 8',
+    'Milano',
+    45.4705,
+    9.1950
+);
+
+-- =========================================================
+-- EXTRA ANNOUNCEMENTS (SIMILI)
+-- =========================================================
+INSERT INTO announcements (
+    titolo,
+    descrizione,
+    prezzo,
+    tipo,
+    image_url,
+    property_id,
+    vendor_id,
+    data_pubblicazione
+)
+SELECT
+    'Monolocale moderno in affitto a Milano',
+    'Monolocale ristrutturato, vicino alla metro.',
+    750,
+    'AFFITTO',
+    'https://images.unsplash.com/photo-1502673530728-f79b4cab31b1',
+    p.id,
+    u.id,
+    CURRENT_DATE
+FROM properties p, users u
+WHERE p.address = 'Via Torino 12'
+  AND u.email = 'mario@realestate.it';
+
+INSERT INTO announcements (
+    titolo,
+    descrizione,
+    prezzo,
+    tipo,
+    image_url,
+    property_id,
+    vendor_id,
+    data_pubblicazione
+)
+SELECT
+    'Monolocale arredato in affitto a Milano',
+    'Soluzione ideale per studenti e giovani professionisti.',
+    680,
+    'AFFITTO',
+    'https://images.unsplash.com/photo-1522156373667-4c7234bbd804',
+    p.id,
+    u.id,
+    CURRENT_DATE
+FROM properties p, users u
+WHERE p.address = 'Via Venezia 8'
+  AND u.email = 'mario@realestate.it';
+

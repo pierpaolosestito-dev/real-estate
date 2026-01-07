@@ -1,3 +1,111 @@
 a:hover {
   text-decoration: underline;
 }
+/* ===== NAVBAR BASE ===== */
+.navbar-aurora {
+  background: linear-gradient(
+    90deg,
+    #08223a 0%,
+    #0b2a4a 45%,
+    #ff8c1a 100%
+  );
+}
+
+
+/* ===== LOGO ===== */
+.aurora-logo {
+  height: 120px;      /* <-- prima era 36px */
+  width: auto;
+}
+
+.navbar-aurora {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+
+.aurora-brand-text {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+/* ===== NAV LINKS ===== */
+.navbar-aurora .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.navbar-aurora .nav-link:hover {
+  color: #ffb347;
+  text-decoration: none;
+}
+
+/* underline elegante */
+.navbar-aurora .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background-color: #ffb347;
+  transition: width 0.25s ease;
+}
+
+.navbar-aurora .nav-link:hover::after {
+  width: 100%;
+}
+
+/* ===== USER INFO ===== */
+.aurora-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aurora-user-link {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.aurora-user-link:hover {
+  color: #ffb347;
+}
+
+/* ===== ROLE BADGE ===== */
+.aurora-badge {
+  background-color: #ffb347;
+  color: #0b2a4a;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+/* ===== LOGOUT BUTTON ===== */
+.aurora-logout-btn {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+}
+
+.aurora-logout-btn:hover {
+  background-color: #ffb347;
+  color: #0b2a4a;
+  border-color: #ffb347;
+}
+
+/* ===== LOGO RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .aurora-logo {
+    height: 60px;
+  }
+}

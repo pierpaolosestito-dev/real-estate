@@ -27,8 +27,8 @@ public class Announcement {
     @Enumerated(EnumType.STRING)
     private AnnouncementType tipo;
 
-    @ManyToOne
-    @JoinColumn(name = "property_id")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "property_id", nullable = false)
     private Property immobile;
 
     @ManyToOne

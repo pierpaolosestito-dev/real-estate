@@ -32,6 +32,40 @@
       class="img-fluid mb-4"
     />
 
+    <div
+  #mapAnnouncement
+  id="map-announcement"
+  class="map-container rounded shadow mt-3">
+</div>
+
+
+    <!-- METEO -->
+    <div class="card mb-4">
+      <div class="card-body">
+
+        <h5>Meteo attuale</h5>
+
+        <div *ngIf="weatherLoading" class="text-muted">
+          Caricamento meteo…
+        </div>
+
+        <div *ngIf="weatherError" class="text-danger">
+          Impossibile caricare il meteo.
+        </div>
+
+        <div *ngIf="weather && !weatherLoading">
+          <div class="d-flex justify-content-between">
+            <div>🌡 <strong>{{ weather.temperature }} °C</strong></div>
+            <div>💨 {{ weather.windspeed }} km/h</div>
+          </div>
+          <div class="mt-2 text-muted">
+            ☁ {{ getWeatherDescription(weather.weathercode) }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- LIKE -->
     <button
       class="btn mb-4"
@@ -116,6 +150,8 @@
         </a>
       </div>
     </div>
+
+    
 
   </ng-container>
 

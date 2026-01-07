@@ -74,16 +74,20 @@
       Non hai ancora messo like a nessun annuncio.
     </div>
 
-    <div class="row">
+    <!-- 🔴 ROW STRETCH -->
+    <div class="row align-items-stretch">
+
+      <!-- 🔴 COL FLEX -->
       <div
-        class="col-md-4 mb-4"
+        class="col-md-4 mb-4 d-flex"
         *ngFor="let a of announcements">
 
-        <div class="card h-100 shadow-sm">
+        <!-- 🔴 CARD FLEX -->
+        <div class="card announcement-card h-100 shadow-sm">
 
           <img
             [src]="a.imageUrl || 'https://placehold.co/600x400'"
-            class="card-img-top"
+            class="card-img-top announcement-img"
             alt="Immobile">
 
           <div class="card-body d-flex flex-column">
