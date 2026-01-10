@@ -33,24 +33,15 @@ export class AuthService {
 
   /** LOGIN */
   login(email: string, password: string): Observable<User> {
-    // password ignorata come deciso
-    return this.http.get<User[]>(this.API_URL).pipe(
-      map(users => {
-        const user = users.find(
-          u => u.email.toLowerCase() === email.toLowerCase()
-        );
+  return this.http.post<User>(`${this.API_URL}/login`, { email, password }).pipe(
+    map(user => {
+      this.currentUser = user;
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+      return user;
+    })
+  );
+}
 
-        if (!user) {
-          throw new Error('Utente non trovato');
-        }
-
-        this.currentUser = user;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
-
-        return user;
-      })
-    );
-  }
 
   /** LOGOUT */
   logout(): void {

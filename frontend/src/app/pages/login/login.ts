@@ -33,9 +33,14 @@ export class LoginComponent {
         this.router.navigate(['/']);
       },
       error: err => {
-        this.error = err.message || 'Errore di login';
-        this.loading = false;
-      }
+  if (err.status === 401) {
+    this.error = 'Credenziali non valide';
+  } else {
+    this.error = 'Errore di login';
+  }
+  this.loading = false;
+}
+
     });
   }
 }

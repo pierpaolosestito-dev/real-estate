@@ -8,12 +8,12 @@ DELETE FROM properties;
 DELETE FROM users;
 
 -- =========================================================
--- USERS
+-- USERS (with clear password)
 -- =========================================================
-INSERT INTO users (nome, cognome, email, ruolo) VALUES
-('Admin', 'System', 'admin@realestate.it', 'ADMIN'),
-('Mario', 'Rossi', 'mario@realestate.it', 'VENDITORE'),
-('Anna', 'Bianchi', 'anna@realestate.it', 'ACQUIRENTE');
+INSERT INTO users (nome, cognome, email, ruolo, password) VALUES
+('Admin', 'System', 'admin@realestate.it', 'ADMIN', 'admin123'),
+('Mario', 'Rossi', 'mario@realestate.it', 'VENDITORE', 'mario123'),
+('Anna', 'Bianchi', 'anna@realestate.it', 'ACQUIRENTE', 'anna123');
 
 -- =========================================================
 -- PROPERTIES
@@ -139,7 +139,6 @@ FROM announcements a, users u
 WHERE u.email = 'anna@realestate.it'
   AND a.titolo = 'Monolocale in affitto a Milano';
 
-
 -- =========================================================
 -- EXTRA PROPERTIES (per comparazione)
 -- =========================================================
@@ -222,4 +221,3 @@ SELECT
 FROM properties p, users u
 WHERE p.address = 'Via Venezia 8'
   AND u.email = 'mario@realestate.it';
-

@@ -3,6 +3,7 @@ package com.example.real_estate_backend.controller;
 import com.example.real_estate_backend.model.User;
 import com.example.real_estate_backend.model.Announcement;
 import com.example.real_estate_backend.repository.*;
+import com.example.real_estate_backend.utils.SessionManager;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -38,6 +40,40 @@ public class UserController {
      * GET /api/users
      * Ritorna tutti gli utenti
      */
+
+@PostMapping("/login")
+public User login(@RequestBody Map<String, String> body) {
+    String email = body.get("email");
+    String password = body.get("password");
+
+    User user = userRepository.findByEmailIgnoreCase(email)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED,
+            "Credenziali non valide"
+        ));
+
+    // nuova verifica password
+    if (!password.equals(user.getPassword())) {
+        throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED,
+            "Credenziali non valide"
+        );
+    }
+
+    // salva "sessione" didattica
+    SessionManager.getInstance().set(user.getId());
+
+    return user;
+}
+
+
+@PostMapping("/logout")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+public void logout() {
+    SessionManager.getInstance().clear();
+}
+
+
     @GetMapping
     public List<User> getAll() {
         return userRepository.findAll();
