@@ -1,7 +1,8 @@
 package com.example.real_estate_backend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "users")
@@ -15,8 +16,9 @@ public class User {
     private String cognome;
     private String email;
 
-    @JsonIgnore
-    private String password;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+private String password;
+
 
     @Enumerated(EnumType.STRING)
     private Role ruolo;
